@@ -1,6 +1,6 @@
 /**
- * @file skse.cpp
- * @brief A SKSE plugin for SSE-ImGui
+ * @file demo.cpp
+ * @brief A demonstration SKSE plugin for SSE-ImGui
  * @internal
  *
  * This file is part of Skyrim SE ImGui mod project (aka SSE-ImGui).
@@ -30,17 +30,11 @@
  */
 
 #include <sse-imgui/sse-imgui.h>
-#include <sse-gui/sse-gui.h>
-#include <utils/winutils.hpp>
 
 #include <cstdint>
 typedef std::uint32_t UInt32;
 typedef std::uint64_t UInt64;
-#include <skse/PluginAPI.h>
-
-#include <chrono>
-#include <fstream>
-#include <iomanip>
+#include "PluginAPI.h"
 
 //--------------------------------------------------------------------------------------------------
 
@@ -50,102 +44,83 @@ static PluginHandle plugin = 0;
 /// To communicate with the other SKSE plugins.
 static SKSEMessagingInterface* messages = nullptr;
 
-/// Log file in pre-defined location
-static std::ofstream logfile;
+/// Table with pointers
+imgui_api imgui;
 
-/// [shared] In order to hook upon D3D11
-std::unique_ptr<ssegui_api> ssegui;
+//--------------------------------------------------------------------------------------------------
+
+static void SSEIMGUI_CCONV
+render (int active)
+{
+    if (!active)
+        return;
+
+    static bool show_demo_window = true;
+    static bool show_another_window = false;
+
+    if (show_demo_window)
+        imgui.igShowDemoWindow (&show_demo_window);
+    {
+        static float f = 0.0f;
+        static int counter = 0;
+        imgui.igBegin ("Hello, world!", nullptr, 0);
+        imgui.igText ("This is some useful text.");
+        imgui.igCheckbox ("Demo Window", &show_demo_window);
+        imgui.igCheckbox ("Another Window", &show_another_window);
+        imgui.igSliderFloat ("float", &f, 0.0f, 1.0f, "%.3f", 1.f);
+        if (imgui.igButton ("Button", ImVec2 {}))
+            counter++;
+        imgui.igSameLine (0.f, -1.f);
+        imgui.igText ("counter = %d", counter);
+        imgui.igText ("Application average %.3f ms/frame (%.1f FPS)",
+                1000.0f / imgui.igGetIO ()->Framerate, imgui.igGetIO ()->Framerate);
+        imgui.igEnd ();
+    }
+    if (show_another_window)
+    {
+        imgui.igBegin ("Another Window", &show_another_window, 0);
+        imgui.igText ("Hello from another window!");
+        if (imgui.igButton ("Close Me", ImVec2 {}))
+            show_another_window = false;
+        imgui.igEnd ();
+    }
+}
 
 //--------------------------------------------------------------------------------------------------
 
 static void
-open_log ()
+handle_sseimgui_message (SKSEMessagingInterface::Message* m)
 {
-    std::string path;
-    if (known_folder_path (FOLDERID_Documents, path))
-    {
-        // Before plugins are loaded, SKSE takes care to create the directiories
-        path += "\\My Games\\Skyrim Special Edition\\SKSE\\";
-    }
-    path += "sse-imgui.log";
-    logfile.open (path);
-}
-
-//--------------------------------------------------------------------------------------------------
-
-decltype(logfile)&
-log ()
-{
-    // MinGW 4.9.1 have no std::put_time()
-    using std::chrono::system_clock;
-    auto now_c = system_clock::to_time_t (system_clock::now ());
-    auto loc_c = std::localtime (&now_c);
-    logfile << '['
-            << 1900 + loc_c->tm_year
-            << '-' << std::setw (2) << std::setfill ('0') << loc_c->tm_mon
-            << '-' << std::setw (2) << std::setfill ('0') << loc_c->tm_mday
-            << ' ' << std::setw (2) << std::setfill ('0') << loc_c->tm_hour
-            << ':' << std::setw (2) << std::setfill ('0') << loc_c->tm_min
-            << ':' << std::setw (2) << std::setfill ('0') << loc_c->tm_sec
-        << "] ";
-    return logfile;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-/// This is somewhere in SKSE Input Loaded message
-
-static void
-handle_ssegui_message (SKSEMessagingInterface::Message* m)
-{
-    if (m->type != SSEGUI_API_VERSION)
-    {
-        log () << "Unsupported SSEGUI interface v" << m->type
-               << " (it is not v" << SSEGUI_API_VERSION
-               << "). Bailing out." << std::endl;
+    if (m->type != SSEIMGUI_API_VERSION)
         return;
-    }
 
-    ssegui.reset (new ssegui_api (*reinterpret_cast<ssegui_api*> (m->data)));
-    log () << "Accepted SSEGUI interface v" << SSEGUI_API_VERSION << std::endl;
-
-    extern bool setup_imgui ();
-    if (!setup_imgui ())
-    {
-        log () << "Unable to setup SSE ImGui." << std::endl;
-        return;
-    }
-    log () << "Setup done." << std::endl;
-
-    int api;
-    sseimgui_version (&api, nullptr, nullptr, nullptr);
-    auto data = sseimgui_make_api ();
-    messages->Dispatch (plugin, UInt32 (api), &data, sizeof (data), nullptr);
-    log () << "SSE-ImGui interface broadcasted." << std::endl;
+    sseimgui_api* sseimgui = reinterpret_cast<sseimgui_api*> (m->data);
+    sseimgui->render_listener (&render, 0);
+    imgui = sseimgui->make_imgui_api ();
 }
 
 //--------------------------------------------------------------------------------------------------
 
-/// Post Load ensure sse-gui is loaded and can accept listeners
+/// Post Load ensure SSEIMGUI is loaded and can accept listeners
 
 static void
 handle_skse_message (SKSEMessagingInterface::Message* m)
 {
     if (m->type != SKSEMessagingInterface::kMessage_PostLoad)
         return;
-    messages->RegisterListener (plugin, "SSEGUI", handle_ssegui_message);
+    messages->RegisterListener (plugin, "SSEIMGUI", handle_sseimgui_message);
 }
 
 //--------------------------------------------------------------------------------------------------
 
 /// @see SKSE.PluginAPI.h
 
-extern "C" SSEIMGUI_API bool SSEIMGUI_CCONV
+extern "C" __declspec(dllexport) bool SSEIMGUI_CCONV
 SKSEPlugin_Query (SKSEInterface const* skse, PluginInfo* info)
 {
     info->infoVersion = PluginInfo::kInfoVersion;
-    info->name = "SSEIMGUI";
-    info->version = SSEIMGUI_API_VERSION;
+    info->name = "sse-imgui-demo";
+    info->version = 1;
 
     plugin = skse->GetPluginHandle ();
 
@@ -159,18 +134,11 @@ SKSEPlugin_Query (SKSEInterface const* skse, PluginInfo* info)
 
 /// @see SKSE.PluginAPI.h
 
-extern "C" SSEIMGUI_API bool SSEIMGUI_CCONV
+extern "C" __declspec(dllexport) bool SSEIMGUI_CCONV
 SKSEPlugin_Load (SKSEInterface const* skse)
 {
-    open_log ();
-
     messages = (SKSEMessagingInterface*) skse->QueryInterface (kInterface_Messaging);
     messages->RegisterListener (plugin, "SKSE", handle_skse_message);
-
-    int a, m, p;
-    const char* b;
-    sseimgui_version (&a, &m, &p, &b);
-    log () << "SSE-ImGui "<< a <<'.'<< m <<'.'<< p <<" ("<< b <<')' << std::endl;
     return true;
 }
 
