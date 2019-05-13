@@ -3,7 +3,7 @@
  * @brief Detect the current operating environment
  * @internal
  *
- * This file is part of SSE Hooks project (aka SSE-ImGui).
+ * This file is part of Skyrim SE ImGui mod project (aka SSE-ImGui).
  *
  *   SSE-ImGui is free software: you can redistribute it and/or modify it
  *   under the terms of the GNU Lesser General Public License as published
