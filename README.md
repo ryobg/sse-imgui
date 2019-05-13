@@ -31,10 +31,27 @@ interface to it.
   Windows Unicode when needed.
 * API is not thread safe, as the rendering and input handling is done from the same thread anyway.
 
-## Required tools
+## Building
 
+Required tools:
 * Python 3.x for the build system (2.x may work too)
-* C++14 compatible compiler available on the PATH
+* C++14 compatible compiler available on the PATH (mingw was used so far)
+* 7z and eventually the MinGW Binutils `strip` tool for the `pack` step below
+
+Then to configure and build: 
+```sh
+CXX=x86_64-w64-mingw32-g++-posix ./waf configure`
+./waf
+./waf pack
+```
+Refer to file `./wscript` for the build settings.
+
+The `-posix` suffix is used to link against the pthread implementation for threading support.
+Otherwise, the default winthreads is dragging one additional DLL as dependency.
+
+The `pack` step is to prepare a 7z archive ready for distribution. It also uses the strip tool for
+removing the debug information from the DLL which apparently some compiler versions add even without
+the `-g` flag.
 
 ## License
 
