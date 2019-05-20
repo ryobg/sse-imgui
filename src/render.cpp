@@ -193,7 +193,7 @@ setup_imgui ()
             || !ssegui->parameter ("window", &dx.window)
             )
     {
-        sseimgui_error = __func__ + " unable to obtain SSE-ImGui parameters"s;
+        sseimgui_error = __func__ + " unable to obtain SSE-GUI parameters"s;
         return false;
     }
 
@@ -212,6 +212,7 @@ setup_imgui ()
     ImGui::StyleColorsDark ();
     dx.imgui_win32 = ImGui_ImplWin32_Init (dx.window);
     dx.imgui_dx11 = ImGui_ImplDX11_Init (dx.device, dx.context);
+    io.Fonts->AddFontDefault ();
 
     if (!dx.imgui_win32 || !dx.imgui_dx11)
     {

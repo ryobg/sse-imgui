@@ -66,8 +66,8 @@ def configure(conf):
 def build (bld):
     bld.shlib (
         target   = APPNAME, 
-        source   = bld.path.ant_glob (
-            ["src/*.cpp", "share/imgui/*.cpp", "share/cimgui/*.cpp", "share/utils/*.cpp"], 
+        source   = bld.path.ant_glob (["src/*.cpp", "share/imgui/*.cpp", "share/cimgui/*.cpp", \
+                "share/utils/*.cpp", "share/DDSTextureLoader/*.cpp", "share/font-compress/*.cpp"], 
             excl=["src/test_*.cpp"]), 
         includes = ['src', 'include', 'share'],
         cxxflags = ['-DSSEIMGUI_BUILD_API', '-DSSEIMGUI_TIMESTAMP="'+str(_datetime_now())+'"',

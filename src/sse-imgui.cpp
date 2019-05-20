@@ -28,11 +28,15 @@
 
 #include <sse-imgui/sse-imgui.h>
 #include <utils/winutils.hpp>
+#include <sse-gui/sse-gui.h>
+#include <DDSTextureLoader/DDSTextureLoader.h>
 
 #include <string>
 #include <array>
+#include <vector>
 #include <algorithm>
 #include <fstream>
+#include <memory>
 
 #include <windows.h>
 
@@ -45,6 +49,9 @@ extern std::ofstream& log ();
 
 /// [shared] Supports SSE-ImGui specific errors in a manner of #GetLastError() and #FormatMessage()
 std::string sseimgui_error;
+
+/// Defined in skse.cpp
+extern std::unique_ptr<ssegui_api> ssegui;
 
 //--------------------------------------------------------------------------------------------------
 
@@ -115,6 +122,63 @@ sseimgui_execute (const char* command, void* arg)
 
 //--------------------------------------------------------------------------------------------------
 
+SSEIMGUI_API int SSEIMGUI_CCONV
+sseimgui_ddsfile_texture (const char* filename, void* texture, void* view)
+{
+    ID3D11Device* device = nullptr;
+    ID3D11DeviceContext* context = nullptr;
+    ID3D11Resource* resource = nullptr;
+    ID3D11ShaderResourceView* resource_view = nullptr;
+
+    if (!ssegui->parameter ("ID3D11Device", &device)
+            || !ssegui->parameter ("ID3D11DeviceContext", &context))
+    {
+        sseimgui_error = __func__ + " unable to obtain SSE-Gui parameters"s;
+        return false;
+    }
+
+    std::wstring w;
+    if (!utf8_to_utf16 (filename, w))
+    {
+        sseimgui_error = __func__ + " unable to convert filename to UTF-16"s;
+        return false;
+    }
+
+    HRESULT hres = DirectX::CreateDDSTextureFromFile (
+            device, context, w.c_str (), &resource, &resource_view, 0, nullptr);
+    if (FAILED (hres))
+    {
+        sseimgui_error = __func__ + " CreateDDSTextureFromFile "s + hex_string (hres);
+        return false;
+    }
+
+    if (texture) *((ID3D11Resource**) texture) = resource;
+    if (view) *((ID3D11ShaderResourceView**) view) = resource_view;
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+SSEIMGUI_API int SSEIMGUI_CCONV
+sseimgui_compress_font (const char* filename, char* out, size_t* size)
+{
+    extern bool binary_to_compressed_c (const char*, const char*, bool, bool, std::vector<char>&);
+
+    std::vector<char> buff;
+    if (!binary_to_compressed_c (filename, nullptr, true, true, buff))
+    {
+        sseimgui_error = __func__ + " binary_to_compressed_c failed."s;
+        return false;
+    }
+    buff.push_back (0);
+
+    if (out) std::copy_n (buff.cbegin (), std::min (*size, buff.size ()), out);
+    *size = buff.size ();
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+
 SSEIMGUI_API sseimgui_api SSEIMGUI_CCONV
 sseimgui_make_api ()
 {
@@ -125,6 +189,8 @@ sseimgui_make_api ()
     api.render_listener = sseimgui_render_listener;
     api.make_imgui_api  = sseimgui_make_imgui_api;
     api.execute         = sseimgui_execute;
+    api.ddsfile_texture = sseimgui_ddsfile_texture;
+    api.compress_font   = sseimgui_compress_font;
     return api;
 }
 

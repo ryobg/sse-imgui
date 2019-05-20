@@ -176,6 +176,59 @@ typedef int (SSEIMGUI_CCONV* sseimgui_execute_t) (const char*, void*);
 /******************************************************************************/
 
 /**
+ * Load a texture from DDS file.
+ *
+ * For ImGui, and the DirectX11 which Skyrim uses, the texture id is the one
+ * supplied in @param view.
+ *
+ * @see https://github.com/Microsoft/DirectXTex
+ * @since 1.1
+ *
+ * @param[out] texture (optional) is an address of ID3D11Resource*
+ * @param[out] view (optional) is an address of ID3D11ShaderResourceView*
+ * @returns non-zero on success, otherwise see #sseimgui_last_error()
+ */
+
+SSEIMGUI_API int SSEIMGUI_CCONV
+sseimgui_ddsfile_texture (const char* filename, void* texture, void* view);
+
+/** @see #sseimgui_ddsfile_texture() */
+
+typedef int (SSEIMGUI_CCONV* sseimgui_ddsfile_texture_t)
+    (const char*, void*, void*);
+
+/******************************************************************************/
+
+/**
+ * A standalone tool to compress TTF/OTF file and base85 encode it.
+ *
+ * This is useful when fonts needs to be embedded into an ImGui application.
+ * The framework can load a font from compressed, base85 encoded C string,
+ * instead of explicit file. So this function can be used to compress the file
+ * upfront and the generated buffer used as parameter to ImGui.
+ *
+ * @see #ImFontAtlas_AddFontFromMemoryCompressedBase85TTF()
+ * @see https://github.com/ocornut/imgui/tree/master/misc/fonts
+ * @since 1.1
+ *
+ * @param[in] filename to a font file (any will do, but why using it?)
+ * @param[out] out (optional) will be a null-terminated C string
+ * @param[in,out] is the size in bytes of @param out. On exit it will contain
+ * how many bytes were actually used (including the terminating null) or how
+ * many bytes are needed.
+ */
+
+SSEIMGUI_API int SSEIMGUI_CCONV
+sseimgui_compress_font (const char* filename, char* out, size_t* size);
+
+/** @see #sseimgui_compress_font() */
+
+typedef int (SSEIMGUI_CCONV* sseimgui_compress_font_t)
+    (const char*, char*, size_t*);
+
+/******************************************************************************/
+
+/**
  * Set of function pointers as found in this file.
  *
  * Compatible changes are function pointers appened to the end of this
@@ -196,6 +249,10 @@ struct sseimgui_api_v1
     sseimgui_make_imgui_api_t make_imgui_api;
     /** @see #sseimgui_execute() */
     sseimgui_execute_t execute;
+    /** @see #sseimgui_ddsfile_texture() */
+    sseimgui_ddsfile_texture_t ddsfile_texture;
+    /** @see #sseimgui_compress_font() */
+    sseimgui_compress_font_t compress_font;
 };
 
 /** Points to the current API version in use. */

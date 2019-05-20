@@ -63,6 +63,43 @@ extern "C" {
 
 /******************************************************************************/
 
+/* Taken from imgui.h itself, as not existing in cimgui.h */
+
+#ifndef SSEIMGUI_DISABLE_IMGUI_MACROS
+
+#define IMGUI_VERSION               "1.70 WIP"
+#define IMGUI_VERSION_NUM           16991
+
+#define IM_ARRAYSIZE(_ARR)          ((int)(sizeof(_ARR)/sizeof(*_ARR)))
+#define IM_OFFSETOF(_TYPE,_MEMBER)  ((size_t)&(((_TYPE*)0)->_MEMBER))
+#define IM_UNUSED(_VAR)             ((void)_VAR)
+
+#define IMGUI_PAYLOAD_TYPE_COLOR_3F     "_COL3F"
+#define IMGUI_PAYLOAD_TYPE_COLOR_4F     "_COL4F"
+
+#ifdef IMGUI_USE_BGRA_PACKED_COLOR
+#define IM_COL32_R_SHIFT    16
+#define IM_COL32_G_SHIFT    8
+#define IM_COL32_B_SHIFT    0
+#define IM_COL32_A_SHIFT    24
+#define IM_COL32_A_MASK     0xFF000000
+#else
+#define IM_COL32_R_SHIFT    0
+#define IM_COL32_G_SHIFT    8
+#define IM_COL32_B_SHIFT    16
+#define IM_COL32_A_SHIFT    24
+#define IM_COL32_A_MASK     0xFF000000
+#endif
+
+#define IM_COL32(R,G,B,A)    (((ImU32)(A)<<IM_COL32_A_SHIFT) | ((ImU32)(B)<<IM_COL32_B_SHIFT) | ((ImU32)(G)<<IM_COL32_G_SHIFT) | ((ImU32)(R)<<IM_COL32_R_SHIFT))
+#define IM_COL32_WHITE       IM_COL32(255,255,255,255)
+#define IM_COL32_BLACK       IM_COL32(0,0,0,255)
+#define IM_COL32_BLACK_TRANS IM_COL32(0,0,0,0)
+
+#endif
+
+/******************************************************************************/
+
 /** Holds all CImGui (hence ImGui) functions as pointers */
 
 struct imgui_api_v1
