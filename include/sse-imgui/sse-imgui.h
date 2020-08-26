@@ -116,6 +116,12 @@ typedef void (SSEIMGUI_CCONV* sseimgui_last_error_t) (size_t*, char*);
  * @param[in,out] vik constant to be used from now on, if the param is negative
  *  or out of bounds (>255) it won't change the constant. On exit it will
  *  contain the previous, or the current (if not changed) key used.
+ *
+ * @deprecated Due to internal change of work on the parent GUI mode. The
+ * activation key is no longer supported. Instead the ssegui_control_key()
+ * should be used. Currently ImGui and the SSE-GUI keys are one and the same.
+ *
+ * This function does nothing now.
  */
 
 SSEIMGUI_API void SSEIMGUI_CCONV

@@ -99,8 +99,8 @@ sseimgui_last_error (size_t* size, char* message)
 SSEIMGUI_API void SSEIMGUI_CCONV
 sseimgui_activation_key (int* vik)
 {
-    extern unsigned activation_key (unsigned* optional);
-    *vik = (int) activation_key ((*vik >= 0 && *vik < 256) ? (unsigned*) &vik : nullptr);
+    (void) vik;
+    sseimgui_error = __func__ + " is deprecated"s;
 }
 
 //--------------------------------------------------------------------------------------------------

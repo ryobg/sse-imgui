@@ -71,7 +71,6 @@ struct render_t
     bool imgui_win32;
     bool imgui_dx11;
     bool render;
-    unsigned activation_key;
 
     bool d3dcompile_failed;
     HMODULE d3dcompile_library;
@@ -115,14 +114,19 @@ static void cleanup_dx ()
 
 //--------------------------------------------------------------------------------------------------
 
+static void SSEGUI_CCONV
+change_activation (int keyboard, int mouse)
+{
+    Expects (keyboard == mouse);
+    dx.render = !keyboard;
+    ImGui::GetIO ().MouseDrawCursor = dx.render;
+}
+
+//--------------------------------------------------------------------------------------------------
+
 static LRESULT CALLBACK
 window_proc (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    if (msg == WM_KEYUP && wParam == dx.activation_key)
-    {
-        dx.render = !dx.render;
-        ImGui::GetIO ().MouseDrawCursor = dx.render;
-    }
     LRESULT ret = 0;
     if (dx.render)
     {
@@ -175,15 +179,6 @@ update_render_listener (void* callback, bool remove)
 
 //--------------------------------------------------------------------------------------------------
 
-unsigned
-activation_key (unsigned* optional)
-{
-    Expects (!optional || *optional < 256);
-    return std::exchange (dx.activation_key, optional ? *optional : dx.activation_key);
-}
-
-//--------------------------------------------------------------------------------------------------
-
 bool
 setup_imgui ()
 {
@@ -222,8 +217,8 @@ setup_imgui ()
 
     ssegui->render_listener ((ssegui_render_callback) &chain_present, false);
     ssegui->message_listener ((ssegui_message_callback) &window_proc, false);
+    ssegui->control_listener ((ssegui_control_callback) &change_activation, false);
 
-    dx.activation_key = VK_INSERT;
     do_cleanup = false;
     return true;
 }
