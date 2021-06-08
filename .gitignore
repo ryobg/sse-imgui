@@ -1,5 +1,7 @@
 *.swp
 .lock-waf*
-.waf-*
+.waf3-*
+
+sse-imgui-*.7z
 
 out/

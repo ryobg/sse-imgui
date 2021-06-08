@@ -40,9 +40,8 @@ Required tools:
 
 Then to configure and build: 
 ```sh
-CXX=x86_64-w64-mingw32-g++-posix ./waf configure`
+CXX=x86_64-w64-mingw32-g++-posix AR=x86_64-w64-mingw32-ar ./waf configure
 ./waf
-./waf pack
 ```
 Refer to file `./wscript` for the build settings.
 
