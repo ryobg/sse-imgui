@@ -67,8 +67,8 @@ extern "C" {
 
 #ifndef SSEIMGUI_DISABLE_IMGUI_MACROS
 
-#define IMGUI_VERSION               "1.70 WIP"
-#define IMGUI_VERSION_NUM           16991
+#define IMGUI_VERSION               "1.84 WIP"
+#define IMGUI_VERSION_NUM           18304
 
 #define IM_ARRAYSIZE(_ARR)          ((int)(sizeof(_ARR)/sizeof(*_ARR)))
 #define IM_OFFSETOF(_TYPE,_MEMBER)  ((size_t)&(((_TYPE*)0)->_MEMBER))

@@ -55,9 +55,9 @@ def configure(conf):
     conf.load('compiler_cxx')
 
     if conf.env['CXX_NAME'] == 'gcc':
-        conf.check_cxx (msg="Checking for '-std=c++17'", cxxflags='-std=c++17') 
+        conf.check_cxx (msg="Checking for '-std=c++20'", cxxflags='-std=c++20') 
         conf.env.append_unique('CXXFLAGS', \
-                ['-std=c++17', "-O2", "-Wall", "-D_UNICODE", "-DUNICODE"])
+                ['-std=c++20', "-O2", "-Wall", "-D_UNICODE", "-DUNICODE"])
         conf.env.append_unique ('STLIB', ['stdc++', 'pthread', 'ole32', 'imm32', 'gdi32', 'dwmapi'])
         conf.env.append_unique ('LINKFLAGS', ['-static-libgcc', '-static-libstdc++'])
     elif conf.env['CXX_NAME'] == 'msvc':
@@ -70,7 +70,7 @@ def build (bld):
                 "share/utils/*.cpp", "share/DDSTextureLoader/*.cpp", "share/font-compress/*.cpp"], 
             excl=["src/test_*.cpp"]), 
         includes = ['src', 'include', 'share'],
-        cxxflags = ['-DSSEIMGUI_BUILD_API', '-DSSEIMGUI_TIMESTAMP="'+str(_datetime_now())+'"',
+        cxxflags = ['-DSSEIMGUI_BUILD_API', '-DSSEIMGUI_TIMESTAMP="'+str(_datetime_now())+'"', 
             '-DCIMGUI_NO_EXPORT'])
     for src in bld.path.ant_glob ("src/test_*.cpp"):
         f = os.path.basename (str (src))

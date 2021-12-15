@@ -35,12 +35,12 @@ interface to it.
 
 Required tools:
 * Python 3.x for the build system (2.x may work too)
-* C++14 compatible compiler available on the PATH (mingw was used so far)
+* C++20 compatible compiler available on the PATH (mingw was used so far)
 * 7z and eventually the MinGW Binutils `strip` tool for the `pack` step below
 
 Then to configure and build: 
 ```sh
-CXX=x86_64-w64-mingw32-g++-posix AR=x86_64-w64-mingw32-ar ./waf configure
+CXX=x86_64-w64-mingw32-g++-posix ./waf configure
 ./waf
 ```
 Refer to file `./wscript` for the build settings.

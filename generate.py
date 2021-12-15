@@ -43,3 +43,4 @@ def output (template, destination, **kwargs):
 output ("imgui_wrapped_h.mako", "include/sse-imgui/imgui_wrapped.h", api = api)
 output ("imgui_wrapped_cpp.mako", "src/imgui_wrapped.cpp", names = names)
 copyfile ("share/cimgui/cimgui.h", "include/sse-imgui/cimgui.h")
+

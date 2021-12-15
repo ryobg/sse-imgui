@@ -138,21 +138,29 @@ handle_skse_message (SKSEMessagingInterface::Message* m)
 
 //--------------------------------------------------------------------------------------------------
 
+consteval std::uint32_t skse_plugin_version () {
+    constexpr std::array<std::uint32_t, 3> ver = {
+#include "../VERSION"
+    };
+    return (ver[0] & 0xFFu << 24) | (ver[1] & 0xFFFu << 12) | (ver[2] & 0xFFFu << 0u);
+};
+
 /// @see SKSE.PluginAPI.h
 
-extern "C" SSEIMGUI_API bool SSEIMGUI_CCONV
-SKSEPlugin_Query (SKSEInterface const* skse, PluginInfo* info)
+extern "C" {
+
+SSEIMGUI_API SKSEPluginVersionData SKSEPlugin_Version =
 {
-    info->infoVersion = PluginInfo::kInfoVersion;
-    info->name = "SSEIMGUI";
-    info->version = SSEIMGUI_API_VERSION;
+    SKSEPluginVersionData::kVersion,
+    skse_plugin_version (),
+    "SSEIMGUI",
+    "ryobg",
+    "",
+    SKSEPluginVersionData::kVersionIndependent_Signatures, // Disables the compatibleVersions checks
+    { 0 },
+    0,  // > PACKED_SKSE_VERSION i.e. works with any version of SKSE
+};
 
-    plugin = skse->GetPluginHandle ();
-
-    if (skse->isEditor)
-        return false;
-
-    return true;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -164,6 +172,7 @@ SKSEPlugin_Load (SKSEInterface const* skse)
 {
     open_log ();
 
+    plugin = skse->GetPluginHandle ();
     messages = (SKSEMessagingInterface*) skse->QueryInterface (kInterface_Messaging);
     messages->RegisterListener (plugin, "SKSE", handle_skse_message);
 
